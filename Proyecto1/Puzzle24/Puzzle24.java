@@ -1,11 +1,11 @@
-package Puzzle25;
+package Puzzle24;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 
-public class Puzzle25 {
+public class Puzzle24 {
     public static List<NodoPuzzle> generarHijos(NodoPuzzle nodo) {
         List<NodoPuzzle> hijos = new ArrayList<>();
         String t = nodo.tablero;
@@ -87,25 +87,24 @@ public class Puzzle25 {
     }
 
 
-
-    //BUSQUEDA IDA*, cualquiera de las otras busquedas el tiempo de ejecucion era excesivo
-    public static void busquedaIDAStar(String estadoInicial, String meta) {
+    //BUSQUEDA IDA*
+    public static void busquedaIDAStar(String estadoInicial, String meta, int tipoHeuristica) { // declaracion del metodo
         System.out.println("============================");
         System.out.println("BUSQUEDA IDA*");
         System.out.println("============================");
 
-        int[] nodosExplorados = {0};
-        int limite = heuristicaOptima(estadoInicial, meta);
-        NodoPuzzle raiz = new NodoPuzzle(estadoInicial, null, null, 0, 0);
+        int[] nodosExplorados = {0}; // se usa un contador de nodos
+        int limite = calcularHeuristica(estadoInicial, meta, tipoHeuristica); //limite inicial de ida, no puede empezar en 0, por lo menos en el valor heuristico del estado inicial
+        NodoPuzzle raiz = new NodoPuzzle(estadoInicial, null, null, 0, 0); // se crea el nodo raiz
 
         while (true) {
-            NodoPuzzle[] solucion = {null};
-            int resultado = idaStarRecursivo(raiz, 0, limite, meta, nodosExplorados, solucion);
+            NodoPuzzle[] solucion = {null}; //contenedor para la solucion encontrada, se resetea en cada iteracion 
+            int resultado = idaStarRecursivo(raiz, 0, limite, meta, nodosExplorados, solucion, tipoHeuristica);// se llama a ida star recursivo
 
             if (solucion[0] != null) {
                 System.out.println("SOLUCION ENCONTRADA");
                 System.out.println("Nodos explorados: " + nodosExplorados[0]);
-                mostrarSolucion(solucion[0]);
+                System.out.println("Movimientos: " + contarMovimientos(solucion[0]));
                 return;
             }
             if (resultado == Integer.MAX_VALUE) {
@@ -117,10 +116,8 @@ public class Puzzle25 {
         }
     }
 
-    private static int idaStarRecursivo(NodoPuzzle nodo, int g, int limite,
-                                        String meta, int[] nodosExplorados,
-                                        NodoPuzzle[] solucion) {
-        int f = g + heuristicaOptima(nodo.tablero, meta);
+    private static int idaStarRecursivo(NodoPuzzle nodo, int g, int limite, String meta, int[] nodosExplorados, NodoPuzzle[] solucion, int tipoHeuristica) {
+        int f = g + calcularHeuristica(nodo.tablero, meta, tipoHeuristica);
         if (f > limite) return f;
 
         nodosExplorados[0]++;
@@ -132,16 +129,20 @@ public class Puzzle25 {
 
         int minimo = Integer.MAX_VALUE;
         for (NodoPuzzle hijo : generarHijos(nodo)) {
-            // Evitar volver al estado anterior
             if (nodo.padre != null && hijo.tablero.equals(nodo.padre.tablero)) continue;
-
-            int resultado = idaStarRecursivo(hijo, g + 1, limite, meta, nodosExplorados, solucion);
+            int resultado = idaStarRecursivo(hijo, g + 1, limite, meta, nodosExplorados, solucion, tipoHeuristica);
             if (resultado == -1) return -1;
             if (resultado < minimo) minimo = resultado;
         }
         return minimo;
     }
-    private static int heuristicaOptima(String tablero, String meta) {
+
+    // 1 = solo Manhattan | 2 = Manhattan + Conflicto Lineal
+    private static int calcularHeuristica(String tablero, String meta, int tipo) {
+        if (tipo == 1) {
+            return manhattanDistance(tablero, meta);
+        } 
+
         return manhattanDistance(tablero, meta) + linearConflict(tablero, meta);
     }
 
@@ -169,55 +170,58 @@ public class Puzzle25 {
     // Agrega 2 por cada par en conflicto (porque una debe moverse fuera y volver)
     private static int linearConflict(String tablero, String meta) {
         int conflicto = 0;
-
-        // Revisar conflictos en filas
         for (int fila = 0; fila < 5; fila++) {
             for (int col1 = 0; col1 < 4; col1++) {
-            char pieza1 = tablero.charAt(fila * 5 + col1);
-            if (pieza1 == ' ') continue;
+                char pieza1 = tablero.charAt(fila * 5 + col1);
+                if (pieza1 == ' ') continue;
 
-            int metaPos1 = meta.indexOf(pieza1);
-            if (metaPos1 / 5 != fila) continue; // pieza1 no pertenece a esta fila en meta
+                int metaPos1 = meta.indexOf(pieza1);
+                if (metaPos1 / 5 != fila) continue;
 
-            for (int col2 = col1 + 1; col2 < 5; col2++) {
-                char pieza2 = tablero.charAt(fila * 5 + col2);
-                if (pieza2 == ' ') continue;
+                for (int col2 = col1 + 1; col2 < 5; col2++) {
+                    char pieza2 = tablero.charAt(fila * 5 + col2);
+                    if (pieza2 == ' ') continue;
 
-                int metaPos2 = meta.indexOf(pieza2);
-                if (metaPos2 / 5 != fila) continue; // pieza2 no pertenece a esta fila en meta
+                    int metaPos2 = meta.indexOf(pieza2);
+                    if (metaPos2 / 5 != fila) continue;
 
-                // Ambas están en su fila correcta pero invertidas → conflicto
-                if (metaPos1 % 5 > metaPos2 % 5) {
-                    conflicto += 2;
+                    if (metaPos1 % 5 > metaPos2 % 5) {
+                        conflicto += 2;
+                    }
                 }
             }
         }
-    }
+        for (int col = 0; col < 5; col++) {
+            for (int fila1 = 0; fila1 < 4; fila1++) {
+                char pieza1 = tablero.charAt(fila1 * 5 + col);
+                if (pieza1 == ' ') continue;
 
-    // Revisar conflictos en columnas
-    for (int col = 0; col < 5; col++) {
-        for (int fila1 = 0; fila1 < 4; fila1++) {
-            char pieza1 = tablero.charAt(fila1 * 5 + col);
-            if (pieza1 == ' ') continue;
+                int metaPos1 = meta.indexOf(pieza1);
+                if (metaPos1 % 5 != col) continue;
 
-            int metaPos1 = meta.indexOf(pieza1);
-            if (metaPos1 % 5 != col) continue; // pieza1 no pertenece a esta columna en meta
+                for (int fila2 = fila1 + 1; fila2 < 5; fila2++) {
+                    char pieza2 = tablero.charAt(fila2 * 5 + col);
+                    if (pieza2 == ' ') continue;
 
-            for (int fila2 = fila1 + 1; fila2 < 5; fila2++) {
-                char pieza2 = tablero.charAt(fila2 * 5 + col);
-                if (pieza2 == ' ') continue;
+                    int metaPos2 = meta.indexOf(pieza2);
+                    if (metaPos2 % 5 != col) continue;
 
-                int metaPos2 = meta.indexOf(pieza2);
-                if (metaPos2 % 5 != col) continue; // pieza2 no pertenece a esta columna en meta
-
-                // Ambas en su columna correcta pero invertidas → conflicto
-                if (metaPos1 / 5 > metaPos2 / 5) {
-                    conflicto += 2;
+                    if (metaPos1 / 5 > metaPos2 / 5) {
+                        conflicto += 2;
+                    }
                 }
             }
         }
-    }
-
         return conflicto;
+    }
+
+
+    public static int contarMovimientos(NodoPuzzle nodo) {
+        int movimientos = 0;
+        while (nodo.padre != null) {
+            movimientos++;
+            nodo = nodo.padre;
+        }
+        return movimientos;
     }
 }

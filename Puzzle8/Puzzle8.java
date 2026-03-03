@@ -112,6 +112,15 @@ public class Puzzle8 {
         }
     }
 
+    public static int contarMovimientos(NodoPuzzle nodo) {
+        int movimientos = 0;
+        while (nodo.padre != null) {
+            movimientos++;
+            nodo = nodo.padre;
+        }
+        return movimientos;
+    }
+
     //BUSQUEDA PRIMERO EN ANCHURA
     public static void busquedaPrimeroEnAnchura(String estadoInicial, String meta) {
         System.out.println("============================");
@@ -133,7 +142,7 @@ public class Puzzle8 {
             if (actual.tablero.equals(meta)) {
                 System.out.println("SOLUCION ENCONTRADA");
                 System.out.println("Nodos explorados: " + nodosExplorados);
-                //mostrarSolucion(actual);
+                System.out.println("Movimientos: " + contarMovimientos(actual));
                 return;
             }
 
@@ -171,7 +180,7 @@ public class Puzzle8 {
             if (actual.tablero.equals(meta)) {
                 System.out.println("SOLUCION ENCONTRADA");
                 System.out.println("Nodos explorados: " + nodosExplorados);
-                //SmostrarSolucion(actual);
+                System.out.println("Movimientos: " + contarMovimientos(actual));
                 return;
             }
 
@@ -210,7 +219,7 @@ public class Puzzle8 {
             if (actual.tablero.equals(meta)) {
                 System.out.println("SOLUCION ENCONTRADA");
                 System.out.println("Nodos explorados: " + nodosExplorados);
-                //mostrarSolucion(actual);
+                System.out.println("Movimientos: " + contarMovimientos(actual));
                 return;
             }
 
@@ -222,61 +231,6 @@ public class Puzzle8 {
         }
         System.out.println("NO SE ENCONTRO UNA SOLUCION.");
     }
-
-
-
-    //Busqueda en estrella con heuristica de piezas fuera de lugar
-    //Solo codigo de referencia
-    /* public static void busquedaAEstrellaHeuristicaUno(String estadoInicial, String meta) {
-        System.out.println("============================");
-        System.out.println("BUSQUEDA A*");
-        System.out.println("============================");
-
-        PriorityQueue<NodoPuzzle> cola = new PriorityQueue<>(
-            Comparator.comparingInt(n -> n.costo + heuristicaUno(n.tablero, meta))
-        );
-        Set<String> visitados  = new HashSet<>();
-
-        NodoPuzzle raiz = new NodoPuzzle(estadoInicial, null, null, 0, 0);
-        cola.add(raiz);
-        int nodosExplorados = 0;
-
-        while (!cola.isEmpty()) {
-            NodoPuzzle actual = cola.poll();
-            if (visitados.contains(actual.tablero)) {
-                continue;
-            }
-            visitados.add(actual.tablero);
-            nodosExplorados++;
-
-            if (actual.tablero.equals(meta)) {
-                System.out.println("SOLUCION ENCONTRADA");
-                System.out.println("Nodos explorados: " + nodosExplorados);
-                //mostrarSolucion(actual);
-                return;
-            }
-
-            for (NodoPuzzle hijo : generarHijos(actual)) {
-                if (!visitados.contains(hijo.tablero)) {
-                    cola.add(hijo);
-                }
-            }
-        }
-        System.out.println("NO SE ENCONTRO UNA SOLUCION.");
-    }
-
-    //Reinventar esta funcion con mi propia herustica
-    private static int heuristicaUno(String tablero, String meta) {
-        int distancia = 0;
-        for (int i = 0; i < 9; i++) {
-            char c = tablero.charAt(i);
-            if (c != ' ' && c != meta.charAt(i)) {
-                distancia++;
-            }
-        }
-        return distancia;
-    } */
-
 
     public static void busquedaAEstrellaHeuristicaProia(String estadoInicial, String meta) {
         System.out.println("============================");
@@ -303,7 +257,7 @@ public class Puzzle8 {
             if (actual.tablero.equals(meta)) {
                 System.out.println("SOLUCION ENCONTRADA");
                 System.out.println("Nodos explorados: " + nodosExplorados);
-                //mostrarSolucion(actual);
+                System.out.println("Movimientos: " + contarMovimientos(actual));
                 return;
             }
 
@@ -315,10 +269,8 @@ public class Puzzle8 {
         }
         System.out.println("NO SE ENCONTRO UNA SOLUCION.");
     }
-
-
-    //esta funcion solo toma los valores de las esquinas y la pieza central
-    //que por lo que investigue son las mas dificiles de acomodar
+    
+    
     private static int heuristicaPropia(String tablero, String meta) {
         int[] posicionesClave = {0, 2, 4, 6, 8}; //Valores de las esquinas y la pieza central
         int costo = 0;

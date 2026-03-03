@@ -1,4 +1,4 @@
-package Puzzle25;
+package Puzzle24;
 
 
 public class NodoPuzzle {
